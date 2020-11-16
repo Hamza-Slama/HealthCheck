@@ -47,17 +47,20 @@ public class HealthCkecker {
     }
 
     public ResponseEndpoints getHealthCheckFromEndpoint(Endpoints endpoints) {
+        long start = System.currentTimeMillis();
         try {
-
             MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter = new MappingJackson2HttpMessageConverter();
             mappingJackson2HttpMessageConverter.setSupportedMediaTypes(Arrays.asList(MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM));
             restTemplate.getMessageConverters().add(mappingJackson2HttpMessageConverter);
             ResponseEntity<String> response = this.restTemplate.exchange(endpoints.getEndpoints(), getHttpMethod(endpoints.getMedthod()),
                     null, String.class);
             log.info("response  = {} ", response);
-            return new ResponseEndpoints(response.getStatusCodeValue(), endpoints.getEndpoints(), endpoints.getMedthod());
+            long end = System.currentTimeMillis();
+            return new ResponseEndpoints(response.getStatusCodeValue(), endpoints.getEndpoints(),
+                    endpoints.getMedthod(),end-start);
         }catch (HttpClientErrorException | HttpServerErrorException e){
-            return new ResponseEndpoints(e.getRawStatusCode(), endpoints.getEndpoints(), endpoints.getMedthod());
+            long end = System.currentTimeMillis();
+            return new ResponseEndpoints(e.getRawStatusCode(), endpoints.getEndpoints(), endpoints.getMedthod(), end-start);
         }
     }
 
