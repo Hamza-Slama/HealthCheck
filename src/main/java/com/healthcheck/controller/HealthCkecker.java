@@ -5,6 +5,7 @@ import com.healthcheck.model.Endpoints;
 import com.healthcheck.model.ResponseEndpoints;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -38,6 +39,12 @@ public class HealthCkecker {
         return ResponseEntity.status(200).body("EndPoint added to list");
     }
 
+
+    @DeleteMapping(value = "/{id}")
+    public ResponseEntity<Object> deleteEndPoints(@PathVariable int id) {
+        endpointsArrayList.remove(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+    }
 
     @GetMapping(value = "/start")
     public ResponseEntity<Object> checkAllEndPoints() {
