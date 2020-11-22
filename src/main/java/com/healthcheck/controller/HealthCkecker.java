@@ -66,14 +66,10 @@ public class HealthCkecker {
             ResponseEntity<String> response = this.restTemplate.exchange(endpoints.getEndpoints(), getHttpMethod(endpoints.getMedthod()),
                     null, String.class);
             long end = System.currentTimeMillis();
-//            if (siteToCounterMap.containsKey(endpoints.getEndpoints())) siteToCounterMap.put(endpoints.getEndpoints(),siteToCounterMap.get(endpoints.getEndpoints())+1 );
-//            else siteToCounterMap.put(endpoints.getEndpoints(),1l );
             siteToCounterMap.merge(endpoints.getEndpoints(), siteToCounterMap.getOrDefault(endpoints.getEndpoints(), 0l) + 1, (oldValue, newValue) -> newValue);
             return new ResponseEndpoints(response.getStatusCodeValue(), endpoints.getEndpoints(),
                     endpoints.getMedthod(), end - start, siteToCounterMap.get(endpoints.getEndpoints()));
         } catch (HttpClientErrorException | HttpServerErrorException e) {
-//            if (siteToCounterMap.containsKey(endpoints.getEndpoints())) siteToCounterMap.put(endpoints.getEndpoints(),siteToCounterMap.get(endpoints.getEndpoints())+1 );
-//            else siteToCounterMap.put(endpoints.getEndpoints(),1l );
             siteToCounterMap.merge(endpoints.getEndpoints(), siteToCounterMap.getOrDefault(endpoints.getEndpoints(), 0l) + 1, (oldValue, newValue) -> newValue);
             long end = System.currentTimeMillis();
             return new ResponseEndpoints(e.getRawStatusCode(), endpoints.getEndpoints(), endpoints.getMedthod(), end - start, siteToCounterMap.get(endpoints.getEndpoints()));
