@@ -12,6 +12,7 @@ public class ResponseEndpoints {
     private String endpoints;
     private String medthod;
     private long timing;
+    private long counter;
 
     public ResponseEndpoints(int code, String endpoints, String medthod) {
         this.code = code;
@@ -24,5 +25,13 @@ public class ResponseEndpoints {
         this.endpoints = endpoints;
         this.medthod = medthod;
         this.timing = timing;
+    }
+
+    public ResponseEndpoints(int code, String endpoints, String medthod, long timing, long counter) {
+        this.code = code;
+        this.endpoints = endpoints;
+        this.medthod = medthod;
+        this.timing = timing;
+        this.counter = counter;
     }
 }

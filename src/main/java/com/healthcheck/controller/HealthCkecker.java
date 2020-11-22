@@ -16,6 +16,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -23,18 +25,19 @@ import java.util.Arrays;
 public class HealthCkecker {
     private ArrayList<Endpoints> endpointsArrayList = new ArrayList<>();
     private RestTemplate restTemplate = new RestTemplate();
-    private int id =0;
+    private Map<String, Long> siteToCounterMap = new HashMap<>();
+    private int id = 0;
 
     @GetMapping(value = "/")
-    public ResponseEntity<Object> getListOfEndPoints() {
+    public ResponseEntity<Object> getListOfEndPoints() throws InterruptedException {
         return ResponseEntity.status(200).body(endpointsArrayList);
     }
 
 
     @PostMapping(value = "/")
-    public ResponseEntity<Object> addEndPoints(@RequestParam(name = "endpoints") String  endpoints ,
+    public ResponseEntity<Object> addEndPoints(@RequestParam(name = "endpoints") String endpoints,
                                                @RequestParam(name = "method") HttpMethod method) {
-        endpointsArrayList.add(new Endpoints(id,endpoints,method.name()));
+        endpointsArrayList.add(new Endpoints(id, endpoints, method.name()));
         id++;
         return ResponseEntity.status(200).body("EndPoint added to list");
     }
@@ -48,6 +51,7 @@ public class HealthCkecker {
 
     @GetMapping(value = "/start")
     public ResponseEntity<Object> checkAllEndPoints() {
+
         ArrayList<ResponseEndpoints> responseEndpointsArrayList = new ArrayList<>();
         endpointsArrayList.forEach(it -> responseEndpointsArrayList.add(getHealthCheckFromEndpoint(it)));
         return ResponseEntity.status(200).body(responseEndpointsArrayList);
@@ -61,13 +65,18 @@ public class HealthCkecker {
             restTemplate.getMessageConverters().add(mappingJackson2HttpMessageConverter);
             ResponseEntity<String> response = this.restTemplate.exchange(endpoints.getEndpoints(), getHttpMethod(endpoints.getMedthod()),
                     null, String.class);
-            log.info("response  = {} ", response);
             long end = System.currentTimeMillis();
+//            if (siteToCounterMap.containsKey(endpoints.getEndpoints())) siteToCounterMap.put(endpoints.getEndpoints(),siteToCounterMap.get(endpoints.getEndpoints())+1 );
+//            else siteToCounterMap.put(endpoints.getEndpoints(),1l );
+            siteToCounterMap.merge(endpoints.getEndpoints(), siteToCounterMap.getOrDefault(endpoints.getEndpoints(), 0l) + 1, (oldValue, newValue) -> newValue);
             return new ResponseEndpoints(response.getStatusCodeValue(), endpoints.getEndpoints(),
-                    endpoints.getMedthod(),end-start);
-        }catch (HttpClientErrorException | HttpServerErrorException e){
+                    endpoints.getMedthod(), end - start, siteToCounterMap.get(endpoints.getEndpoints()));
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+//            if (siteToCounterMap.containsKey(endpoints.getEndpoints())) siteToCounterMap.put(endpoints.getEndpoints(),siteToCounterMap.get(endpoints.getEndpoints())+1 );
+//            else siteToCounterMap.put(endpoints.getEndpoints(),1l );
+            siteToCounterMap.merge(endpoints.getEndpoints(), siteToCounterMap.getOrDefault(endpoints.getEndpoints(), 0l) + 1, (oldValue, newValue) -> newValue);
             long end = System.currentTimeMillis();
-            return new ResponseEndpoints(e.getRawStatusCode(), endpoints.getEndpoints(), endpoints.getMedthod(), end-start);
+            return new ResponseEndpoints(e.getRawStatusCode(), endpoints.getEndpoints(), endpoints.getMedthod(), end - start, siteToCounterMap.get(endpoints.getEndpoints()));
         }
     }
 
@@ -77,5 +86,6 @@ public class HealthCkecker {
         }
         return HttpMethod.GET;
     }
+
 
 }
